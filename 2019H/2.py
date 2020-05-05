@@ -1,38 +1,28 @@
 visited = []
-visited_L = []
-visited_R = []
 
 def print_grid(g):
     for row in g:
         print("".join(row))
 
 def print_visited():
-    for row in visited_L:
-        print("".join([str(v) for v in row]))
-    for row in visited_R:
-        print("".join([str(v) for v in row]))
+    for row in visited:
+        print("".join(row))
 
 def solve(n, grid, initial_squares, total_diagonal):
     global visited
-    global visited_L
-    global visited_R
     is_even = n % 2 == 0
-    visited = [[0 for i in range(n)] for j in range(n)]
-    visited_L = [[0 for i in range(n)] for j in range(n)]
-    visited_R = [[0 for i in range(n)] for j in range(n)]
+    visited = [['-' for i in range(n)] for j in range(n)]
     diagonal_flipped = 0
 
-    # test corner
     for square in initial_squares:
-        visited[square[0]][square[1]] = 1
-        visited_L[square[0]][square[1]] = 1
+        visited[square[0]][square[1]] = 'L'
     square_queue = [(s[0], s[1], 'L') for s in initial_squares]
     walker = 0
     while len(square_queue) > walker:
         x = square_queue[walker][0]
         y = square_queue[walker][1]
-        to_right = square_queue[walker][2] == 'L'
-        if (to_right and visited_R[x][y] == 1) or (not to_right and visited_L[x][y] == 1):
+        direction = 'R' if square_queue[walker][2] == 'L' else 'L'
+        if visited[x][y] == 'C' or direction ==  visited[x][y]:
             walker += 1
             continue
 
@@ -43,24 +33,24 @@ def solve(n, grid, initial_squares, total_diagonal):
             to_flip = True
 
         # visit it and add to queue
-        if to_right:
+        if direction == 'R':
             for i in range(-min(x, y), min(n - x, n - y)):
-                visited[x + i][y + i] += 1
-                visited_R[x + i][y + i] += 1
+                if visited[x + i][y + i] == 'L':
+                    visited[x + i][y + i] = 'C'
+                else:
+                    visited[x + i][y + i] = 'R'
+                    square_queue.append((x + i, y + i, 'R'))
                 if to_flip:
                     grid[x + i][y + i] = '#' if grid[x + i][y + i] == '.' else '.'
-                if i == 0:
-                    continue
-                square_queue.append((x + i, y + i, 'R'))
         else:
             for i in range(max(-x, -(n - 1 - y)), min(n - 1 - x, y) + 1):
-                visited[x + i][y - i] += 1
-                visited_L[x + i][y - i] += 1
+                if visited[x + i][y - i] == 'R':
+                    visited[x + i][y - i] = 'C'
+                else:
+                    visited[x + i][y - i] = 'L'
+                    square_queue.append((x + i, y - i, 'L'))
                 if to_flip:
                     grid[x + i][y - i] = '#' if grid[x + i][y - i] == '.' else '.'
-                if i == 0:
-                    continue
-                square_queue.append((x + i, y - i, 'L'))
 
         walker += 1
     return min(diagonal_flipped, total_diagonal - diagonal_flipped)
